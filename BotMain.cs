@@ -10,10 +10,12 @@ public class BotMain {
     public static readonly BotMain Instance = new();
     private readonly BotConfig _config = new(Environment.CurrentDirectory + "/main.json");
     private readonly DiscordSocketClient _client;
-    private PatreonConfig _patreonConfig;
+    private readonly PatreonConfig _patreonConfig;
 
     private BotMain() {
-        _client = new DiscordSocketClient();
+        _client = new DiscordSocketClient(new DiscordSocketConfig {
+            AlwaysDownloadUsers = true
+        });
         _client.Log += Log;
         _client.SlashCommandExecuted += OnSlashCommand;
         _client.Connected += OnConnect;
@@ -23,8 +25,8 @@ public class BotMain {
         timer.Elapsed += (sender, e) => {
             Logger.Info("Checking Permissions");
             SocketGuild guild = _client.GetGuild(1252840735087132794);
-            foreach (SocketGuildUser user in _patreonConfig.All().Select(x => guild.GetUser(x)).Where(x => x != null))
-                _patreonConfig.GetOrCreate(user);
+            foreach (ulong user in _patreonConfig.All())
+                _patreonConfig.GetOrCreate(guild.GetUser(user), user);
         };
         timer.AutoReset = true;
         timer.Start();
@@ -38,23 +40,15 @@ public class BotMain {
     }
 
     private async Task OnConnect() {
-        await RegisterTestCommand();
         await RegisterSlashCommand();
     }
 
     private Task OnGuildMemberUpdated(Cacheable<SocketGuildUser, ulong> oldUser, SocketGuildUser newUser) {
-        _patreonConfig.GetOrCreate(newUser).Patreon = PatreonSolver.Resolve(newUser);
-        Logger.Info($"[{DateTime.Now.ToString(CultureInfo.CurrentCulture)}] {newUser.Username}: Role changed: {_patreonConfig.GetOrCreate(newUser).Patreon.ToString()}");
+        PatreonConfig.PatreonInfo info = _patreonConfig.GetOrCreate(newUser, newUser.Id);
+        info.Patreon = PatreonSolver.Resolve(newUser);
+        Logger.Info($"[{DateTime.Now.ToString(CultureInfo.CurrentCulture)}] {newUser.Username}: Role changed: {info.Patreon.ToString()}");
         _patreonConfig.Save();
         return Task.CompletedTask;
-    }
-
-    private async Task RegisterTestCommand() {
-        SlashCommandBuilder builder = new SlashCommandBuilder()
-            .WithName("test")
-            .WithDescription("Test")
-            .WithDefaultPermission(true);
-        await _client.CreateGlobalApplicationCommandAsync(builder.Build());
     }
 
     private async Task RegisterSlashCommand() {
@@ -67,7 +61,6 @@ public class BotMain {
 
     private async Task OnSlashCommand(SocketSlashCommand command) {
         if (command.User is not SocketGuildUser socketGuildUser) return;
-        if (command.CommandName == "test") await command.RespondAsync("Test Message", ephemeral: true);
         if (command.CommandName == "bind") {
             Console.WriteLine($"[{DateTime.Now.ToString(CultureInfo.CurrentCulture)}] {socketGuildUser.Username}: {command.CommandName}");
             MojangApi.MojangApiResponse response = MojangApi.GetMojangInfo((string)command.Data.Options.First().Value);
@@ -79,7 +72,7 @@ public class BotMain {
                     .WithCurrentTimestamp()
                     .Build(), ephemeral: true);
             else {
-                PatreonConfig.PatreonInfo info = _patreonConfig.GetOrCreate(socketGuildUser);
+                PatreonConfig.PatreonInfo info = _patreonConfig.GetOrCreate(socketGuildUser, socketGuildUser.Id);
                 info.McUuid = response.Id;
                 _patreonConfig.Save();
                 await command.RespondAsync(embed: new EmbedBuilder()

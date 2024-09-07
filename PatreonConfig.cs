@@ -27,15 +27,15 @@ public class PatreonConfig : Config {
         sr.Close();
     }
 
-    public PatreonInfo GetOrCreate(SocketGuildUser user) {
-        if (!_byId.ContainsKey(user.Id)) {
-            PatreonInfo info = new() { DiscordId = user.Id, Patreon = PatreonSolver.Resolve(user), McUuid = "" };
+    public PatreonInfo GetOrCreate(SocketGuildUser? user, ulong id) {
+        if (!_byId.ContainsKey(id)) {
+            PatreonInfo info = new() { DiscordId = id, Patreon = 0, McUuid = "" };
             _data.Add(info);
-            _byId.Add(user.Id, info);
-            Save();
+            _byId.Add(id, info);
         }
-        PatreonInfo patreonInfo = _byId[user.Id];
-        patreonInfo.Patreon = PatreonSolver.Resolve(user);
+        PatreonInfo patreonInfo = _byId[id];
+        patreonInfo.Patreon = user == null ? 0 : PatreonSolver.Resolve(user);
+        Save();
         return patreonInfo;
     }
 

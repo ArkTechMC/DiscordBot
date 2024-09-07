@@ -2,8 +2,8 @@
 
 namespace DiscordBot.util;
 
-public class PatreonSolver {
-    private static readonly List<ulong> Roles = new() { 0, 1281559477526597694, 1281559640483565603, 1281559728970793010, 1281559778224508969, 0, 0, 0, 0, 1278159074697019423, 1252962032295350304, 1252962987464196186 };
+public static class PatreonSolver {
+    private static readonly List<ulong> Roles = new() { 0, 1281559477526597694, 1281559640483565603, 1281559728970793010, 1281559778224508969, 0, 0, 0, 0, 1278159074697019423, 1281790860756914208, 1252962987464196186 };
 
     public static Patreon Resolve(SocketGuildUser user) {
         for (int i = Roles.Count - 1; i > 0; i--) {
