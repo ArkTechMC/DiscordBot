@@ -9,8 +9,8 @@ public class BotConfig : Config {
     [JsonPropertyName("token")]
     public string Token = "";
     [JsonInclude]
-    [JsonPropertyName("sponserFile")]
-    public string SponserFilePath = "";
+    [JsonPropertyName("sponsorFile")]
+    public string SponsorFilePath = "";
 
     public BotConfig() : base("") { }
 
@@ -31,6 +31,6 @@ public class BotConfig : Config {
 
     private void CopyFrom(BotConfig another) {
         Token = another.Token;
-        SponserFilePath = another.SponserFilePath;
+        this.SponsorFilePath = another.SponsorFilePath;
     }
 }

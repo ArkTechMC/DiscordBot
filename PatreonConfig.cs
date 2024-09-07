@@ -29,7 +29,7 @@ public class PatreonConfig : Config {
 
     public PatreonInfo GetOrCreate(SocketGuildUser? user, ulong id) {
         if (!_byId.ContainsKey(id)) {
-            PatreonInfo info = new() { DiscordId = id, Patreon = 0, McUuid = "" };
+            PatreonInfo info = new() { DiscordId = id, Patreon = 0, McUuid = "", NickName = "" };
             _data.Add(info);
             _byId.Add(id, info);
         }
@@ -47,5 +47,6 @@ public class PatreonConfig : Config {
         public ulong DiscordId { get; init; }
         public PatreonSolver.Patreon Patreon { get; set; }
         public string McUuid { get; set; } = "";
+        public string NickName { get; set; } = "";
     }
 }

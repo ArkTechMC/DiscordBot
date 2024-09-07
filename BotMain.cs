@@ -20,7 +20,7 @@ public class BotMain {
         _client.SlashCommandExecuted += OnSlashCommand;
         _client.Connected += OnConnect;
         _client.GuildMemberUpdated += OnGuildMemberUpdated;
-        _patreonConfig = new PatreonConfig(_config.SponserFilePath);
+        _patreonConfig = new PatreonConfig(_config.SponsorFilePath);
         Timer timer = new(60 * 60 * 1000);
         timer.Elapsed += (sender, e) => {
             Logger.Info("Checking Permissions");
@@ -74,6 +74,7 @@ public class BotMain {
             else {
                 PatreonConfig.PatreonInfo info = _patreonConfig.GetOrCreate(socketGuildUser, socketGuildUser.Id);
                 info.McUuid = response.Id;
+                info.NickName = response.Name;
                 _patreonConfig.Save();
                 await command.RespondAsync(embed: new EmbedBuilder()
                     .WithTitle("Successfully bind account!")
